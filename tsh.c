@@ -194,9 +194,8 @@ void eval(char *cmdline)
         return;        
     }
 
-
     if(builtin_cmd(argv) != 1){
-        if(cmdline[0] != '/'){
+       if(cmdline[0] == '/'){
             return;
         }
 
@@ -208,19 +207,13 @@ void eval(char *cmdline)
         }
 
         if(!bg) {
-            if(!addjob(jobs, pid, FG, cmdline)){
-                return;
-            }
+            addjob(jobs, pid, FG, cmdline);
             waitfg(pid);
-            return;
 
         }
         else {
-            if(!addjob(jobs, pid, BG, cmdline)){
-                return;
-            }
+            addjob(jobs, pid, BG, cmdline);
             printf("[%d] (%d) %s", pid2jid(pid), pid, cmdline);
-            return;
         }
     }
     // DEBUG("cock1");
@@ -299,14 +292,15 @@ int builtin_cmd(char **argv)
         exit(1);
     }
     if(strncmp(argv[0], "jobs", 4) == 0){
+        DEBUG(argv[0]);
         listjobs(jobs);
         return 1;
     }
-    if(strncmp(argv[0], "fg", 2) == 0 || strncmp(argv[0], "bg", 2) == 0){
+    /*if(strncmp(argv[0], "fg", 2) == 0 || strncmp(argv[0], "bg", 2) == 0){
         do_bgfg(argv);
         //DEBUG("Going to do_bgfg");
         return 1;
-    }
+    }*/
 
 
     //DEBUG("cock2");
