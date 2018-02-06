@@ -194,23 +194,34 @@ void eval(char *cmdline)
         return;        
     }
 
-    if((pid = fork()) == 0){
-        if (execve(argv[0], argv, environ) < 0){
-                printf("%s: Command not found.\n", argv[0]);
-                exit(0);
-            }
-    }
-    if(!bg) {
-        addjob(jobs, pid, BG, cmdline);
-        int status;
-        if(waitpid(pid, &status, 0) < 0){
-            unix_error("waitfg: waitpid error");
+
+    if(builtin_cmd(argv) != 1){
+        if(cmdline[0] != '/'){
+            return;
         }
 
-    }
-    else if(bg){
-        addjob(jobs, pid, FG, cmdline);    
-        printf("[%d] (%d) %s", pid2jid(pid), pid, cmdline);
+        if((pid = fork()) == 0){
+            if (execve(argv[0], argv, environ) < 0){
+                    printf("%s: Command not found.\n", argv[0]);
+                    exit(0);
+                }
+        }
+
+        if(!bg) {
+            if(!addjob(jobs, pid, FG, cmdline)){
+                return;
+            }
+            waitfg(pid);
+            return;
+
+        }
+        else {
+            if(!addjob(jobs, pid, BG, cmdline)){
+                return;
+            }
+            printf("[%d] (%d) %s", pid2jid(pid), pid, cmdline);
+            return;
+        }
     }
     // DEBUG("cock1");
     return;
@@ -307,14 +318,6 @@ int builtin_cmd(char **argv)
  */
 void do_bgfg(char **argv)
 {
-
-    if(strncmp(argv[0], "fg", 2) == 0){
-        
-    }
-    
-   // DEBUG("cock3");
-
-
     return;
 }
 
@@ -323,8 +326,10 @@ void do_bgfg(char **argv)
  */
 void waitfg(pid_t pid)
 {
-   // DEBUG("cock4");
-    return;
+    int status;
+    if(waitpid(pid, &status, 0) < 0){
+        unix_error("waitfg: waitpid error");
+    }
 }
 
 /*****************
